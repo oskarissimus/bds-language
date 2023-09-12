@@ -48,7 +48,7 @@ RUNNER = pathlib.Path(__file__).parent / "lsp_runner.py"
 MAX_WORKERS = 5
 # TODO: Update the language server name and version.
 LSP_SERVER = server.LanguageServer(
-    name="<pytool-display-name>", version="<server version>", max_workers=MAX_WORKERS
+    name="BDS Language Support", version="0.0.1", max_workers=MAX_WORKERS
 )
 
 
@@ -67,11 +67,11 @@ LSP_SERVER = server.LanguageServer(
 
 # TODO: Update TOOL_MODULE with the module name for your tool.
 # e.g, TOOL_MODULE = "pylint"
-TOOL_MODULE = "<pytool-module>"
+TOOL_MODULE = "bdslang"
 
 # TODO: Update TOOL_DISPLAY with a display name for your tool.
 # e.g, TOOL_DISPLAY = "Pylint"
-TOOL_DISPLAY = "<pytool-display-name>"
+TOOL_DISPLAY = "BDS Language Support"
 
 # TODO: Update TOOL_ARGS with default argument you have to pass to your tool in
 # all scenarios.
@@ -111,6 +111,18 @@ def did_close(params: lsp.DidCloseTextDocumentParams) -> None:
     # Publishing empty diagnostics to clear the entries for this file.
     LSP_SERVER.publish_diagnostics(document.uri, [])
 
+
+@LSP_SERVER.feature(lsp.TEXT_DOCUMENT_COMPLETION)
+def completions(params: lsp.CompletionParams):
+    items = []
+    document = LSP_SERVER.workspace.get_document(params.text_document.uri)
+    current_line = document.lines[params.position.line].strip()
+    if current_line.endswith("hello."):
+        items = [
+            lsp.CompletionItem(label="world"),
+            lsp.CompletionItem(label="friend"),
+        ]
+    return lsp.CompletionList(is_incomplete=False, items=items)
 
 def _linting_helper(document: workspace.Document) -> list[lsp.Diagnostic]:
     # TODO: Determine if your tool supports passing file content via stdin.
@@ -470,7 +482,7 @@ def _run_tool_on_document(
         # sys.path and that might not work for this scenario next time around.
         with utils.substitute_attr(sys, "path", sys.path[:]):
             try:
-                # TODO: `utils.run_module` is equivalent to running `python -m <pytool-module>`.
+                # TODO: `utils.run_module` is equivalent to running `python -m bdslang`.
                 # If your tool supports a programmatic API then replace the function below
                 # with code for your tool. You can also use `utils.run_api` helper, which
                 # handles changing working directories, managing io streams, etc.
@@ -553,7 +565,7 @@ def _run_tool(extra_args: Sequence[str]) -> utils.RunResult:
         # sys.path and that might not work for this scenario next time around.
         with utils.substitute_attr(sys, "path", sys.path[:]):
             try:
-                # TODO: `utils.run_module` is equivalent to running `python -m <pytool-module>`.
+                # TODO: `utils.run_module` is equivalent to running `python -m bdslang`.
                 # If your tool supports a programmatic API then replace the function below
                 # with code for your tool. You can also use `utils.run_api` helper, which
                 # handles changing working directories, managing io streams, etc.
